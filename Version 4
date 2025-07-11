@@ -1,0 +1,59 @@
+local CopyInstance = function(variablename: string, ignoreprops: table, ...)
+ local variablename = variablename or "instance"
+ local ignoreprops = ignoreprops or {}
+ local allstr = ""
+ 
+  for _, inst in ipairs({...}) do
+    if game:FindService(inst.ClassName) or game:GetService(inst.ClassName) ~= nil or #game:GetService("ReflectionService"):GetPropertyNames(inst.ClassName) == 0 then
+      local sav = ""
+       for _, prop in next, game.HttpService:JSONDecode(game:HttpGetAsync("https://pastebin.com/raw/TFSU2s5e"))[inst.ClassName] do
+         local propty, val = typeof(inst[prop]), inst[prop]
+         local text = ""
+         
+         if propty == "nil" or val == nil then 
+             text = "nil"
+           elseif propty == "Instance" then
+             text = "game." .. tostring(val:GetFullName())
+           elseif propty ~= "number" and propty ~= "boolean" and propty ~= "string" and propty ~= "EnumItem" then
+             text = propty .. ".new(" .. tostring(val) .. ")"
+           elseif propty == "string" then
+             text = "\"" .. tostring(val) .. "\""
+           else
+             text = tostring(val)
+         end
+         
+          sav = sav .. `game.{inst.ClassName}.{prop} = {text}` .. "\n"
+       end
+      allstr = allstr .. sav .. "\n"
+      continue
+    end
+
+  local savedstr = ""
+  allstr = allstr .. `local {variablename} = Instance.new("{inst.ClassName}")`
+    for _, prop in game:GetService("ReflectionService"):GetPropertyNames(inst.ClassName) do
+      if not table.find(ignoreprops, prop) then
+        local text
+        local value = inst[prop]
+        local propType = typeof(value)
+
+        if value == nil or propType == "nil" then
+          text = "nil"
+        elseif propType == "Instance" then
+          text = "game." .. value:GetFullName()
+        elseif propType ~= "number" and propType ~= "boolean" and propType ~= "string" and propType ~= "EnumItem" then
+          text = propType .. ".new(" .. tostring(value) .. ")"
+        elseif propType == "string" then
+          text = "\"" .. value .. "\""
+        else
+          text = tostring(value)
+        end
+
+        allstr = allstr .. savedstr .. "\n" .. variablename .. "." .. prop .. " = " .. text
+      end
+    end
+   allstr = allstr .. "\n\n"
+  end
+  setclipboard(allstr)
+end
+
+CopyInstance("effect", {"Enabled", "Sandboxed", "Locked", "Archivable", "Capabilities"}, game.Lighting, game.Lighting.Sky)
